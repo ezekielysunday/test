@@ -71,6 +71,6 @@ jobs:
 #      - name: Login to ECR
 #        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
       - name: Build Docker image
-        run: docker build -t $REPO:${GITHUB_SHA::8} .
+        run: docker build -t -t "$REPO:latest" .
 #      - name: Publish Docker image to ECR
 #        run: docker push $REPO         
