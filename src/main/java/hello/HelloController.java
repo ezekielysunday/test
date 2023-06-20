@@ -8,7 +8,7 @@ public class HelloController {
 
     @RequestMapping("/")
         public String index() {
-            return "This is the index!\n";
+            return "This is the index file!\n";
         }
     @RequestMapping("/hello")
         public String index2() {
