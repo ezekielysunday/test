@@ -1,34 +1,31 @@
-name: Deploy to EC2
+name: CI/CD
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: self-hosted
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
+    - name: Set up Java
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
 
-      - name: Configure AWS credentials
-        run: |
-          echo "[default]" >> ~/.aws/credentials
-          echo "aws_access_key_id=$AWS_ACCESS_KEY" >> ~/.aws/credentials
-          echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
-          chmod 600 ~/.aws/credentials
+    - name: Build JAR
+      run: mvn clean package -DskipTests
 
-      - name: Deploy to EC2
-        run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set default.region us-east-1
-          ssh -i ~/.ssh/test.pem ec2-user@52.91.87.1 "docker stop my-java-app && docker rm my-java-app || true"
-          ssh -i ~/.ssh/test.pem ec2-user@52.91.87.1 "docker run -d -p 8080:8080 --name my-java-app my-java-app:tag"
+    - name: Set up Docker
+      uses: docker/setup-docker@v2
+
+    - name: Build Docker image
+      run: docker build -t my-app .
+
+    - name: Run Docker container
+      run: docker run -d -p 8080:8080 my-app
